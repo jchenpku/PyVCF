@@ -354,9 +354,9 @@ class Reader(object):
         self.samples = fields[9:]
         self._sample_indexes = dict([(x,i) for (i,x) in enumerate(self.samples)])
 
-    def _map(self, func, iterable, bad='.'):
+    def _map(self, func, iterable, bad=['.', '']):
         '''``map``, but make bad values None.'''
-        return [func(x) if x != bad else None
+        return [func(x) if x not in bad else None
                 for x in iterable]
 
     def _parse_filter(self, filt_str):
@@ -491,25 +491,19 @@ class Reader(object):
                 entry_type = samp_fmt._types[i]
 
                 # we don't need to split single entries
-                if entry_num == 1 or ',' not in vals:
-
+                if entry_num == 1:
                     if entry_type == 'Integer':
                         try:
                             sampdat[i] = int(vals)
                         except ValueError:
                             sampdat[i] = float(vals)
-                    elif entry_type == 'Float':
+                    elif entry_type == 'Float' or entry_type == 'Numeric':
                         sampdat[i] = float(vals)
                     else:
                         sampdat[i] = vals
-
-                    if entry_num != 1:
-                        sampdat[i] = (sampdat[i])
-
                     continue
 
                 vals = vals.split(',')
-
                 if entry_type == 'Integer':
                     try:
                         sampdat[i] = _map(int, vals)

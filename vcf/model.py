@@ -26,7 +26,7 @@ class _Call(object):
         if getattr(self.data, 'GT', None) is not None:
             self.gt_alleles = [(al if al != '.' else None) for al in allele_delimiter.split(self.data.GT)]
             self.ploidity = len(self.gt_alleles)
-            self.called = all([al != None for al in self.gt_alleles])
+            self.called = any(al is not None for al in self.gt_alleles)
             self.gt_nums = self.data.GT if self.called else None
         else:
             #62 a call without a genotype is not defined as called or not
@@ -65,7 +65,7 @@ class _Call(object):
         if self.called:
             # lookup and return the actual DNA alleles
             try:
-                return self.gt_phase_char().join(str(self.site.alleles[int(X)]) for X in self.gt_alleles)
+                return self.gt_phase_char().join(str(self.site.alleles[int(X)] if X is not None else '.') for X in self.gt_alleles)
             except:
                 sys.stderr.write("Allele number not found in list of alleles\n")
         else:
@@ -401,7 +401,7 @@ class _Record(object):
             return True
         for alt in self.ALT:
             if alt is None:
-                return True
+                return False
             if alt.type != "SNV" and alt.type != "MNV":
                 return False
             elif len(alt) != len(self.REF):
@@ -452,7 +452,7 @@ class _Record(object):
             # just one alt allele
             alt_allele = self.ALT[0]
             if alt_allele is None:
-                return True
+                return False
             if len(self.REF) > len(alt_allele):
                 return True
             else:
